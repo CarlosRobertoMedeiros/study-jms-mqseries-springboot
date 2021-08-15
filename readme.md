@@ -13,18 +13,15 @@
 	- MQSeries inside container docker
 	- SpringBoot Application 
 		
-	Inside the directory sistemaa 
-		docker-compose up	
-	Inside the directory sistemaa-mensageria 
-		mvn package spring-boot:run	
-	
-#Test
-	IBM-MQ Console
-	- https://localhost:9443/ibmmq/console
-	user:admin 
-	password:passw0rd
-		
-	#DataBase
-	
-		
-	#Front End
+	#Environment 
+		In a first terminal, inside sistemaa project run:
+			- docker-compose up
+			
+		In a second terminal, inside sistemaa-mensageria project run:
+			- Inside the directory sistemaa-mensageria
+			mvn package spring-boot:run
+			
+		IBM-MQ Console
+			- https://localhost:9443/ibmmq/console
+			user:admin 
+			password:passw0rd	
