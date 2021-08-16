@@ -1,78 +1,98 @@
 package br.com.roberto.sistemaamensageria.configuration;
 
-import javax.jms.ConnectionFactory;
-import javax.jms.JMSException;
-
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.jms.DefaultJmsListenerContainerFactoryConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
-import org.springframework.jms.config.JmsListenerContainerFactory;
+import org.springframework.context.annotation.Primary;
+import org.springframework.jms.connection.CachingConnectionFactory;
+import org.springframework.jms.connection.UserCredentialsConnectionFactoryAdapter;
+import org.springframework.jms.core.JmsOperations;
 import org.springframework.jms.core.JmsTemplate;
-import org.springframework.jms.support.converter.MappingJackson2MessageConverter;
-import org.springframework.jms.support.converter.MessageConverter;
-import org.springframework.jms.support.converter.MessageType;
 
 import com.ibm.mq.jms.MQQueueConnectionFactory;
+import com.ibm.msg.client.wmq.WMQConstants;
 
 @Configuration
 public class MQSeriesConnectionFactoryConfig {
 
+	
+	@Value("${ibm.mq.queueManager}")
+	private String queueManager;
+
 	// @Value("${jsa.activemq.broker.url}")
 	@Value("${ibm.mq.connName}")
-	String brokerUrl;
+	private String brokerUrl;
+	
+	@Value("${ibm.mq.channel}")
+	private String channel;
+	
+	@Value("${ibm.mq.port}")
+	private Integer port;
 
 	@Value("${ibm.mq.user}")
-	String userName;
+	private String username;
 
 	@Value("${ibm.mq.password}")
-	String password;
-
-	/*
-	 * Initial ConnectionFactory
-	 */
+	private String password;
+	
+	@Value("${ibm.mq.Receive-timeout}")
+	private Long receiveTimeout;
+	
 	@Bean
-	public ConnectionFactory connectionFactory() throws JMSException {
-		MQQueueConnectionFactory connectionFactory = new MQQueueConnectionFactory();
-
-		connectionFactory.setHostName(brokerUrl);
-		connectionFactory.setPort(1414);
-		connectionFactory.setQueueManager("QM1");
-		connectionFactory.setChannel("DEV.APP.SVRCONN");
-
-		return connectionFactory;
+	public MQQueueConnectionFactory mqQueueConnectionFactory() {
+	    MQQueueConnectionFactory mqQueueConnectionFactory = new MQQueueConnectionFactory();
+	    
+	    try {
+	    	mqQueueConnectionFactory.setHostName(brokerUrl);
+	    	mqQueueConnectionFactory.setPort(port);
+	    	mqQueueConnectionFactory.setChannel(channel);
+	    	mqQueueConnectionFactory.setQueueManager(queueManager);
+	    	mqQueueConnectionFactory.setTransportType(WMQConstants.WMQ_CM_CLIENT);
+	        mqQueueConnectionFactory.setClientReconnectOptions(WMQConstants.WMQ_CLIENT_RECONNECT);
+	        mqQueueConnectionFactory.setCCSID(1208);//For Linux //For Windows 1381
+	    } catch (Exception e) {
+	        throw new RuntimeException(e);
+	    }
+	    return mqQueueConnectionFactory;
 	}
-
-	@Bean // Serialize message content to json using TextMessage
-	public MessageConverter jacksonJmsMessageConverter() {
-		MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
-		converter.setTargetType(MessageType.TEXT);
-		converter.setTypeIdPropertyName("_type");
-		return converter;
-	}
-
-	/*
-	 * Used for Receiving Message
-	 */
+	
+	
 	@Bean
-	public JmsListenerContainerFactory<?> jsaFactory(ConnectionFactory connectionFactory,
-			DefaultJmsListenerContainerFactoryConfigurer configurer) {
-		DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
-		factory.setMessageConverter(jacksonJmsMessageConverter());
-		configurer.configure(factory, connectionFactory);
-		return factory;
+	UserCredentialsConnectionFactoryAdapter userCredentialsConnectionFactoryAdapter(MQQueueConnectionFactory mqQueueConnectionFactory) {
+	    UserCredentialsConnectionFactoryAdapter userCredentialsConnectionFactoryAdapter = new UserCredentialsConnectionFactoryAdapter();
+	    userCredentialsConnectionFactoryAdapter.setUsername(username);
+	    userCredentialsConnectionFactoryAdapter.setPassword(password);
+	    userCredentialsConnectionFactoryAdapter.setTargetConnectionFactory(mqQueueConnectionFactory);
+	    return userCredentialsConnectionFactoryAdapter;
 	}
-
-	/*
-	 * Used for Sending Messages.
-	 */
+	
 	@Bean
-	public JmsTemplate jmsTemplate() throws JMSException {
-		JmsTemplate template = new JmsTemplate();
-		template.setMessageConverter(jacksonJmsMessageConverter());
-		template.setConnectionFactory(connectionFactory());
-		return template;
+	@Primary
+	public CachingConnectionFactory cachingConnectionFactory(UserCredentialsConnectionFactoryAdapter userCredentialsConnectionFactoryAdapter) {
+	    CachingConnectionFactory cachingConnectionFactory = new CachingConnectionFactory();
+	    cachingConnectionFactory.setTargetConnectionFactory(userCredentialsConnectionFactoryAdapter);
+	    cachingConnectionFactory.setSessionCacheSize(500);
+	    cachingConnectionFactory.setReconnectOnException(true);
+	    return cachingConnectionFactory;
 	}
+	
+
+	/*Uncomment for Work with Transactional
+	 * 
+	@Bean
+	public PlatformTransactionManager jmsTransactionManager(CachingConnectionFactory cachingConnectionFactory) {
+	    JmsTransactionManager jmsTransactionManager = new JmsTransactionManager();
+	    jmsTransactionManager.setConnectionFactory(cachingConnectionFactory);
+	    return jmsTransactionManager;
+	}
+	*/
+	
+	@Bean
+	public JmsOperations jmsOperations(CachingConnectionFactory cachingConnectionFactory) {
+	    JmsTemplate jmsTemplate = new JmsTemplate(cachingConnectionFactory);
+	    jmsTemplate.setReceiveTimeout(receiveTimeout);
+	    return jmsTemplate;
+	}	
+	
 
 }

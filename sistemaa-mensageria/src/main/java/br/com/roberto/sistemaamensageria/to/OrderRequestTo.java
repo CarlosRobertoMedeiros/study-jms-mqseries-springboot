@@ -3,25 +3,19 @@ package br.com.roberto.sistemaamensageria.to;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
 @AllArgsConstructor
-@JsonIdentityInfo(generator = ObjectIdGenerators.IntSequenceGenerator.class, property = "@correlationId", scope = OrderRequestTo.class)
+//@JsonIdentityInfo(generator = ObjectIdGenerators.IntSequenceGenerator.class, property = "@correlationId", scope = OrderRequestTo.class)
 public class OrderRequestTo {
 	private String correlationId;
 	private Long idServico;
 	private String servico;
 	private List<TarifaTo> tarifasTo = new ArrayList<>();
 
+	/*
 	public String toString() {
 		JSONObject jsonInfo = new JSONObject();
 
@@ -52,6 +46,6 @@ public class OrderRequestTo {
 		}
 
 		return jsonInfo.toString();
-	}
+	}*/
 
 }

@@ -36,6 +36,7 @@
 		</dependency>
 		
 		<!-- Begin of Specific Project Dependencies  -->
+		<!-- 
 		<dependency>
           <groupId>com.fasterxml.jackson.core</groupId>
           <artifactId>jackson-databind</artifactId>
@@ -46,6 +47,8 @@
 			<artifactId>json</artifactId>
 			<version>20210307</version>
 		</dependency>
+		
+		-->
 		
 		<!-- End of Specific Project Dependencies -->
 		

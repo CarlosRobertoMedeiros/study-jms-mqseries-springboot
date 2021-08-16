@@ -8,6 +8,7 @@ import javax.jms.TextMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jms.core.JmsOperations;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,14 +29,14 @@ import lombok.extern.slf4j.Slf4j;
 public class OrderController {
 
 	@Autowired
-	JmsTemplate JmsTemplate;
+	private JmsOperations jmsOperations;
 
 	@PostMapping
 	public ResponseEntity<String> createOrder(@RequestBody OrderRequestTo orderRequestTo) throws JMSException {
 		log.info("### 1 ### Sending order message '{}' to the queue", orderRequestTo);
 
 		MQQueue orderedRequestQueue = new MQQueue("DEV.QUEUE.1");
-		JmsTemplate.convertAndSend(orderedRequestQueue, orderRequestTo, textMessage -> {
+		jmsOperations.convertAndSend(orderedRequestQueue, orderRequestTo, textMessage -> {
 			textMessage.setJMSCorrelationID(orderRequestTo.getCorrelationId());
 			return textMessage;
 		});
@@ -49,7 +50,7 @@ public class OrderController {
 		log.info("Looking for message '{}'", correlationId);
 		String convertedId = bytesToHex(correlationId.getBytes());
 		final String selectorExpression = String.format("JMSCorrelationID='ID:%s'", convertedId);
-		final TextMessage responseMessage = (TextMessage) JmsTemplate.receiveSelected("DEV.QUEUE.1",
+		final TextMessage responseMessage = (TextMessage) jmsOperations.receiveSelected("DEV.QUEUE.1",
 				selectorExpression);
 		OrderRequest response = OrderRequest.builder().message(responseMessage.getText()).correlationId(correlationId)
 				.build();
