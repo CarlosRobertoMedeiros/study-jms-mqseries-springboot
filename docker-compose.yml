@@ -11,6 +11,8 @@ services:
     environment:
       - LICENSE=accept
       - MQ_QMGR_NAME=QM1
+    volumes: 
+      - .files\qm1data:/mnt/mqm
     stdin_open: true
     tty: true
     restart: always

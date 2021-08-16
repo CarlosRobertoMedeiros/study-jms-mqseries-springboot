@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ibm.mq.jms.MQQueue;
 
 import br.com.roberto.sistemaamensageria.model.OrderRequest;
+import br.com.roberto.sistemaamensageria.to.OrderRequestTo;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -30,16 +31,16 @@ public class OrderController {
 	JmsTemplate JmsTemplate;
 
 	@PostMapping
-	public ResponseEntity<String> createOrder(@RequestBody OrderRequest orderRequest) throws JMSException {
-		log.info("### 1 ### Sending order message '{}' to the queue", orderRequest.getMessage());
+	public ResponseEntity<String> createOrder(@RequestBody OrderRequestTo orderRequestTo) throws JMSException {
+		log.info("### 1 ### Sending order message '{}' to the queue", orderRequestTo);
 
 		MQQueue orderedRequestQueue = new MQQueue("DEV.QUEUE.1");
-		JmsTemplate.convertAndSend(orderedRequestQueue, orderRequest.getMessage(), textMessage -> {
-			textMessage.setJMSCorrelationID(orderRequest.getCorrelationId());
+		JmsTemplate.convertAndSend(orderedRequestQueue, orderRequestTo, textMessage -> {
+			textMessage.setJMSCorrelationID(orderRequestTo.getCorrelationId());
 			return textMessage;
 		});
 
-		return new ResponseEntity(orderRequest, HttpStatus.CREATED);
+		return new ResponseEntity(orderRequestTo, HttpStatus.CREATED);
 	}
 
 	@GetMapping // this was just to show how to find a message by correlation Id
@@ -52,6 +53,7 @@ public class OrderController {
 				selectorExpression);
 		OrderRequest response = OrderRequest.builder().message(responseMessage.getText()).correlationId(correlationId)
 				.build();
+		System.out.println(response);
 		return new ResponseEntity(response, HttpStatus.OK);
 	}
 

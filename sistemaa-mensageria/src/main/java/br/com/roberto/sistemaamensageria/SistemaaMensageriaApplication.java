@@ -4,7 +4,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.jms.annotation.EnableJms;
 
-
 /**
  * TODO: 
  *   - Corrigir as filas com o nome padrão dos sistemas
@@ -14,6 +13,8 @@ import org.springframework.jms.annotation.EnableJms;
  *
  */
 
+
+
 @SpringBootApplication
 @EnableJms
 public class SistemaaMensageriaApplication {
@@ -21,7 +22,10 @@ public class SistemaaMensageriaApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(SistemaaMensageriaApplication.class, args);
 	}
-	
-}
-//mvn package spring-boot:run
 
+}
+
+//Reference links
+// https://www.baeldung.com/jackson-deserialization
+// https://ozenero.com/spring-jms-activemq-send-java-object-messages-activemq-server-specially-bi-directional-relationship-java-objects
+// https://doc.akka.io/docs/alpakka/current/jms/ibm-mq.html

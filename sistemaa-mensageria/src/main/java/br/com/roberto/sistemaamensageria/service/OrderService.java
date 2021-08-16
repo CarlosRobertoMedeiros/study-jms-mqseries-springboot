@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Component
+//@Component
 public class OrderService {
 	
 	@JmsListener(destination = "DEV.QUEUE.1")

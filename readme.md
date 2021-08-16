@@ -16,6 +16,10 @@
 	#Environment 
 		In a first terminal, inside sistemaa project run:
 			- docker-compose up
+		
+		Important Detail: 
+			if the mqlog console show web-server is running then
+			  delete directory web inside .files\qm1data\data
 			
 		In a second terminal, inside sistemaa-mensageria project run:
 			- Inside the directory sistemaa-mensageria
